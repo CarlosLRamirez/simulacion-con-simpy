@@ -31,13 +31,29 @@ env = simpy.Environment()
 
 # Programacion de una instancia del proceso
 proc = env.process(simple_process(env, 'Proceso 1'))
-
 # Programación de otra instancia del proceso (la cual iniciará retrasada)
-proc2 = start_delayed(env, simple_process(env, 'Proceso 2', waitfor=60), 10)
-
+#proc2 = start_delayed(env, simple_process(env, 'Proceso 2', waitfor=60), 10)
 # Programación de una tercera instancia del proceso
-proc3 = env.process(simple_process(env,'Proceso 3',waitfor=15))
-
+#proc3 = env.process(simple_process(env,'Proceso 3',waitfor=15))
 # Ejecución de la simulación
 env.run()
 
+#------------------------ FIN ------------------------------------#
+
+"""
+Ejemplo 1: 1-ejemplo-simple.py
+
+•	Introducción a SimPy:
+•	Se crea un entorno de simulación (simpy.Environment()).
+•	Los procesos se definen como funciones generadoras utilizando yield env.timeout(...).
+
+Descripción del Ejemplo:
+•	Se lanza un proceso simple que muestra cómo se inicia, espera un determinado tiempo y finaliza.
+•	Se utiliza para introducir conceptos básicos: tiempo de simulación, uso de env.now, y la mecánica de pausar la ejecución con yield.
+
+Puntos a Resaltar
+•	La importancia del entorno en SimPy.
+•	Cómo se utiliza yield para simular la espera de un proceso.
+•	El formato de salida que indica el avance del tiempo de simulación.
+
+"""

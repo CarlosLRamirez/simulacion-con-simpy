@@ -1,26 +1,16 @@
 #!/usr/bin/env python
+#
+# Ejemplo Simpy - Procesos y entidades
+# for 2110636 Performance Evaluation and Analysis Class
+# Natawut Nupairoj, Chulalongkorn University, Thailand
 
-"""
-Simulación de un sistema de recursos usando SimPy
+# Fuente Original
+# https://github.com/natawutn/simpy-tutorial
 
-Este script modela un escenario donde se simula el funcionamiento de un servicio de taquilla (ticket office)
-utilizando el framework SimPy. La simulación se enfoca en la gestión de recursos y el comportamiento de
-los procesos (pasajeros) que interactúan con el recurso (la taquilla).
+# Comentarios y traduccion: Carlos Ramirez
+# Para el curso Fundamentos de Modelado y Simulación
+# Universidad de San Carlos De Guatemala, Guatemala
 
-Aspectos clave de la simulación:
-  - Los pasajeros llegan al sistema de forma aleatoria, con tiempos interarribo generados mediante una distribución exponencial.
-  - Cada pasajero, al llegar, solicita el servicio de la taquilla. Si el recurso está ocupado, el pasajero se une a la cola.
-  - Una vez que se le asigna el recurso, el pasajero es atendido por un tiempo de servicio también determinado de forma exponencial.
-  - Se imprimen mensajes en cada etapa del proceso para mostrar el estado del sistema, incluyendo el número de clientes
-    en cola y el estado del recurso (cuántos cajeros están ocupados).
-  - La simulación finaliza después de un tiempo total definido, permitiendo analizar el comportamiento y la utilización del recurso.
-
-Fuente original: https://github.com/natawutn/simpy-tutorial
-Comentarios y traducción: Carlos Ramirez, Universidad de San Carlos de Guatemala
-
-Este ejemplo sirve para entender cómo modelar y simular un sistema de colas M/M/1 utilizando SimPy, siendo útil
-para cursos de Fundamentos de Modelado y Simulación.
-"""
 
 import simpy
 import random
@@ -86,4 +76,27 @@ taquilla = simpy.Resource(env, capacity=1)
 env.process(passenger_generator(env, taquilla, arrival_rate, service_rate))
 env.run(until=SIMULATION_END_TIME)
 
+#------------------------ FIN ------------------------------------#
 
+
+"""
+Simulación de un sistema de recursos usando SimPy
+
+Este script modela un escenario donde se simula el funcionamiento de un servicio de taquilla (ticket office)
+utilizando el framework SimPy. La simulación se enfoca en la gestión de recursos y el comportamiento de
+los procesos (pasajeros) que interactúan con el recurso (la taquilla).
+
+Aspectos clave de la simulación:
+  - Los pasajeros llegan al sistema de forma aleatoria, con tiempos interarribo generados mediante una distribución exponencial.
+  - Cada pasajero, al llegar, solicita el servicio de la taquilla. Si el recurso está ocupado, el pasajero se une a la cola.
+  - Una vez que se le asigna el recurso, el pasajero es atendido por un tiempo de servicio también determinado de forma exponencial.
+  - Se imprimen mensajes en cada etapa del proceso para mostrar el estado del sistema, incluyendo el número de clientes
+    en cola y el estado del recurso (cuántos cajeros están ocupados).
+  - La simulación finaliza después de un tiempo total definido, permitiendo analizar el comportamiento y la utilización del recurso.
+
+Fuente original: https://github.com/natawutn/simpy-tutorial
+Comentarios y traducción: Carlos Ramirez, Universidad de San Carlos de Guatemala
+
+Este ejemplo sirve para entender cómo modelar y simular un sistema de colas M/M/1 utilizando SimPy, siendo útil
+para cursos de Fundamentos de Modelado y Simulación.
+"""

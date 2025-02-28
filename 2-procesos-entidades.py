@@ -43,11 +43,31 @@ def generator(env, arrival_rate):
         yield env.timeout(next_entity_arrival)
         i += 1
 
-
 ## Preparación de la simulación
 
 env = simpy.Environment()
 env.process(generator(env, 0.1))
 env.run(until=100)
 
+#------------------------ FIN ------------------------------------#
 
+"""Ejesmplo 2: 2-procesos-entidades.py
+
+Contenido y Conceptos Clave
+
+Proceso Generador:
+•	Un proceso que crea entidades (por ejemplo, clientes) de forma continua, modelando un proceso de llegada.
+•	Se utiliza random.expovariate() para simular tiempos interarribo.
+
+Proceso Entidad:
+•	Cada entidad (cliente) tiene su propio proceso, donde se simula la actividad (por ejemplo, atención, espera, etc.).
+
+Aspectos Importantes:
+•	Diferenciación entre el generador (que crea entidades) y el proceso individual de cada entidad.
+•	Cómo se asignan tiempos aleatorios para representar comportamientos estocásticos típicos en sistemas de colas.
+
+Puntos a Resaltar
+	•	La interacción entre el proceso generador y el proceso entidad.
+	•	El uso de identificadores o nombres para distinguir entre las distintas entidades.
+	•	El flujo de llegada, procesamiento (simulado con yield env.timeout()) y finalización del proceso.
+"""
