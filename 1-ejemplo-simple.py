@@ -1,11 +1,15 @@
-# First Simpy Example
+#!/usr/bin/env python
+
+# Ejemplo Simple con Simpy
 # for 2110636 Performance Evaluation and Analysis Class
 # Natawut Nupairoj, Chulalongkorn University, Thailand
 
 # Fuente Original
 # https://github.com/natawutn/simpy-tutorial
 
-# Comentarios y Traducciones: Carlos Ramirez, Universidad de San Carlos De Guatemala, Guatemala
+# Comentarios y traduccion: Carlos Ramirez
+# Para el curso Fundamentos de Modelado y Simulación
+# Universidad de San Carlos De Guatemala, Guatemala
 
 
 import simpy

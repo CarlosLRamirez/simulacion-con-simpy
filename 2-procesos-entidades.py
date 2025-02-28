@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 #
-# Simpy Example - Processes
+# Ejemplo Simpy - Procesos y entidades
 # for 2110636 Performance Evaluation and Analysis Class
 # Natawut Nupairoj, Chulalongkorn University, Thailand
 
 # Fuente Original
 # https://github.com/natawutn/simpy-tutorial
 
-# Comentarios y Traducción a Español: Carlos Ramirez, Universidad de San Carlos De Guatemala, Guatemala
-
+# Comentarios y traduccion: Carlos Ramirez
+# Para el curso Fundamentos de Modelado y Simulación
+# Universidad de San Carlos De Guatemala, Guatemala
 
 import simpy
 import random
