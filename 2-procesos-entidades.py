@@ -45,9 +45,9 @@ def generator(env, arrival_rate):
 
 ## Preparación de la simulación
 
-env = simpy.Environment()
-env.process(generator(env, 0.1))
-env.run(until=100)
+banco = simpy.Environment()
+banco.process(generator(banco, 0.1))
+banco.run(until=100)
 
 #------------------------ FIN ------------------------------------#
 

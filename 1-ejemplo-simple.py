@@ -31,10 +31,13 @@ env = simpy.Environment()
 
 # Programacion de una instancia del proceso
 proc = env.process(simple_process(env, 'Proceso 1'))
+
 # Programación de otra instancia del proceso (la cual iniciará retrasada)
-#proc2 = start_delayed(env, simple_process(env, 'Proceso 2', waitfor=60), 10)
+proc2 = start_delayed(env, simple_process(env, 'Proceso 2', waitfor=60), 10)
+
 # Programación de una tercera instancia del proceso
-#proc3 = env.process(simple_process(env,'Proceso 3',waitfor=15))
+proc3 = env.process(simple_process(env,'Proceso 3',waitfor=15))
+
 # Ejecución de la simulación
 env.run()
 
