@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Simulación de un sistema de colas M/M/c utilizando SimPy.
 
