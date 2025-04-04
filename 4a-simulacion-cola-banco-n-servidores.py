@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Simulación de un sistema de colas M/M/c utilizando SimPy.
 
@@ -5,6 +7,9 @@ Este script simula el funcionamiento de un banco (o sistema similar) con múltip
 - Los clientes llegan al sistema de acuerdo a una distribución exponencial con tasa LAMBDA.
 - El tiempo de servicio también se genera de forma exponencial con tasa MU.
 - Se puede configurar el número de servidores mediante NUM_SERVIDORES.
+- Durante la simulación, se genera un archivo de salida llamado "eventos_simulacion.csv" que registra 
+  los eventos ocurridos, como llegadas, inicios y finales de servicio, junto con información relevante 
+  como el tamaño de la cola y el número de cajeros ocupados.
   
 Durante la simulación se registran y calculan las siguientes métricas:
   - Utilización del servidor (rho), calculada como el tiempo total en que los servidores están ocupados 
@@ -23,11 +28,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-#RANDOM_SEED = 58
-SIM_TIME = 1000        #Tiempo total de simulación
-LAMBDA = 8          # Taza de llegadas (por unidad de tiempo)
-MU = 14              # Taza de servicio (por unidad de tiempo)
-NUM_SERVIDORES = 1   # Numero de servidores en el sistema
+#RANDOM_SEED = 1717
+SIM_TIME = 480        #Tiempo total de simulación
+LAMBDA = 1          # Taza de llegadas (por unidad de tiempo)
+MU = 0.25              # Taza de servicio (por unidad de tiempo)
+NUM_SERVIDORES = 5   # Numero de servidores en el sistema
+
+# Tiempo máximo de llegada de clientes (8 horas)
+TIEMPO_LLEGADA_MAXIMA = SIM_TIME  # 480 minutos (8 horas)
 
 #Variables Globales
 tiempo_ultimo_evento = 0.0
@@ -44,17 +52,21 @@ total_clientes_simulacion = 0
 # ---------------------------
 # Este proceso genera clientes que van entrando al sistema
 # Los tiempos entre llegadas estan distribuidos exponencialmente 
-def generacion_llegadas(env,server):
+def generacion_llegadas(env, server):
     id_cliente = 0
 
     #Este bucle se ejecuta indefinidamente hasta el final de la simulación
     while True:
         tiempo_entre_llegadas = random.expovariate(LAMBDA)
         yield env.timeout(tiempo_entre_llegadas)
-        id_cliente+=1
-        #print(f"{env.now:.4f}: Se generó el cliente {id_cliente:d}. Tiempo entre llegadas {tiempo_entre_llegadas:.4f}")
-        tiempo_llegada=env.now
-        env.process(atencion_cliente(env,id_cliente,server,tiempo_llegada))
+
+        # Detener la generación de clientes después de TIEMPO_LLEGADA_MAXIMA
+        if env.now > TIEMPO_LLEGADA_MAXIMA:
+            break
+
+        id_cliente += 1
+        tiempo_llegada = env.now
+        env.process(atencion_cliente(env, id_cliente, server, tiempo_llegada))
 
 # ---------------------------
 # Proceso: atención_cliente
@@ -62,51 +74,45 @@ def generacion_llegadas(env,server):
 # Este proceso (entidad) representa el ciclo de vida de un cliente en el sistema.
 # El cliente llega, solicita atención del cajero (o se pone en la cola), es atendido durante un
 # tiempo determinado y luego sale del sistema.
-def atencion_cliente(env,id_cliente,server,tiempo_llegada):
-    
-    global area_clientes_cola, area_clientes_sistema, tiempo_ultimo_evento,tiempo_ocupado, total_cola, total_sistema, total_clientes_simulacion
-    
-    print(f"{id_cliente:d},{env.now:.2f},LlegadaCliente,{len(server.queue):d},{server.count:d},{tiempo_ultimo_evento:.4f}")
-    actualizar_estadisticas(env,server)
+def atencion_cliente(env, id_cliente, server, tiempo_llegada):
+    global area_clientes_cola, area_clientes_sistema, tiempo_ultimo_evento, tiempo_ocupado, total_cola, total_sistema, total_clientes_simulacion
 
-    #Esta es la parte mas importante del proceso, aqui solicitamos el servidor, el proceso continua hasta que exista un servidor disponible
-    #Esto es gestionado por Simpy
-    with server.request() as request: 
-        yield request 
-        #Inicio del servicio
-        print(f"{id_cliente:d},{env.now:.2f},InicioServicio,{len(server.queue):d},{server.count:d},{tiempo_ultimo_evento:.4f}")
+    # Calcular tiempo desde la última llegada
+    tiempo_desde_ultima_llegada = env.now - tiempo_ultimo_evento
 
-        #Generación del tiempo de servicio aleatorio (distribución exponencial)
+    # Registrar el evento de llegada en el archivo unificado
+    with open("eventos_simulacion.csv", "a") as archivo_eventos:
+        archivo_eventos.write(f"{id_cliente},Llegada,{env.now:.2f},{tiempo_desde_ultima_llegada:.2f},{len(server.queue)},{server.count},,,,,\n")
+
+    # Actualizar estadísticas después de la llegada
+    actualizar_estadisticas(env, server)
+
+    # Solicitar el servidor
+    with server.request() as request:
+        yield request
+
+        # Registrar el inicio del servicio
+        tiempo_inicio_servicio = env.now
+        tiempo_en_cola = tiempo_inicio_servicio - tiempo_llegada
+        with open("eventos_simulacion.csv", "a") as archivo_eventos:
+            archivo_eventos.write(f"{id_cliente},InicioServicio,{env.now:.2f},,,{len(server.queue)},{server.count},,,,,\n")
+
+        # Generar tiempo de servicio y simular el tiempo de atención
         tiempo_servicio = random.expovariate(MU)
-        
-        #Captura del inicio del servicio
-        inicio_servicio = env.now
-        
-        #Calculo del tiempo que estuvo el cleinte en cola
-        total_cola += inicio_servicio - tiempo_llegada
-
-        actualizar_estadisticas(env,server)
-
-        #delay por el tiempo de servicio
         yield env.timeout(tiempo_servicio)
 
-        #Captura del tiempo que el cliente estuvo siendo atendido, lo cual equivale a que el cajero estuvo ocupado
-        tiempo_ocupado += env.now - inicio_servicio
+        # Registrar el evento de fin de servicio en el archivo unificado
+        tiempo_fin_servicio = env.now
+        tiempo_total = tiempo_fin_servicio - tiempo_llegada
+        with open("eventos_simulacion.csv", "a") as archivo_eventos:
+            archivo_eventos.write(f"{id_cliente},FinServicio,{tiempo_fin_servicio:.2f},,,{len(server.queue)},{server.count},{tiempo_inicio_servicio:.2f},{tiempo_fin_servicio:.2f},{tiempo_en_cola:.2f},{tiempo_servicio:.2f},{tiempo_total:.2f}\n")
 
-        print(f"{id_cliente:d},{env.now:.2f},FinServicio(Salida),{len(server.queue):d},{server.count:d},{tiempo_ultimo_evento:.4f}")
-
-        actualizar_estadisticas(env,server)
-
-        #Captura el fin del servicio
-        fin_servicio=env.now
-
-        #Calculo del total de tiempo que el cleinte estuvo en el sistema
-        total_sistema += fin_servicio-tiempo_llegada
-
-        #Registro de los clientes que van completando el servicio y saliendo del sistema
-        #esto nos sirve la final para calcular el tiempo promedio que estuvieron los cleintes en cola y en el sistema
-        #durante toda la simulación
-        total_clientes_simulacion +=1
+        # Actualizar estadísticas después del fin del servicio
+        tiempo_ocupado += tiempo_servicio
+        total_cola += tiempo_en_cola
+        total_sistema += tiempo_total
+        total_clientes_simulacion += 1
+        actualizar_estadisticas(env, server)
 
 # ---------------------------
 # Función para actualizar las estadisticas
@@ -136,25 +142,32 @@ def main():
 
     global area_clientes_cola, area_clientes_sistema, total_sistema, total_cola, total_clientes_simulacion
 
-    #random.seed(RANDOM_SEED)
+    # Crear encabezados para el archivo unificado
+    with open("eventos_simulacion.csv", "w") as archivo_eventos:
+        archivo_eventos.write("ID_Cliente,Evento,Tiempo,Tiempo_Desde_Ultima_Llegada,Tamaño_Cola,Cajeros_Ocupados,Tiempo_Inicio_Servicio,Tiempo_Fin_Servicio,Tiempo_En_Cola,Tiempo_En_Servicio,Tiempo_Total\n")
+
     banco = simpy.Environment()
 
     #Instancia del recurso: cajero
     cajero = simpy.Resource(banco, capacity=NUM_SERVIDORES)
 
     #Programamos el recurso de generación de llegas de clientes
-    banco.process(generacion_llegadas(banco,cajero))
+    banco.process(generacion_llegadas(banco, cajero))
     print("\n--- Tabla de Eventos ---")
     print("Num,Timestamp,Tipo Evento,Tamaño de la Cola,Cajeros Ocupados,Tiempo desde evento anterior")
 
-    banco.run(until=SIM_TIME)
+    # Ejecutar la simulación hasta que no haya más clientes en el sistema
+    while True:
+        banco.run()  # Ejecutar la simulación indefinidamente
+        if len(cajero.queue) == 0 and cajero.count == 0:  # Verificar si no hay clientes en cola o siendo atendidos
+            break
 
     #Calculo de resultados 
-    utilizacion = (tiempo_ocupado / (SIM_TIME*NUM_SERVIDORES))*100
-    L = area_clientes_sistema/SIM_TIME
-    L_q=area_clientes_cola/SIM_TIME
-    Wq=total_cola / total_clientes_simulacion
-    W=total_sistema / total_clientes_simulacion
+    utilizacion = (tiempo_ocupado / (banco.now * NUM_SERVIDORES)) * 100
+    L = area_clientes_sistema / banco.now
+    L_q = area_clientes_cola / banco.now
+    Wq = total_cola / total_clientes_simulacion
+    W = total_sistema / total_clientes_simulacion
 
     #Despliegue de resultados de la simulación
     print("\n--- Resultados de la Simulación ---")
